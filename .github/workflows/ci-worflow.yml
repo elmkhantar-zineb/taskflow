@@ -12,6 +12,9 @@ on:
 jobs:
     lint:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: web
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
@@ -22,8 +25,6 @@ jobs:
                 cache: npm
                 cache-dependency-path: web/package-lock.json
             - name: Install dependencies
-              working-directory: web
               run: npm ci
             - name: Run lint
-              working-directory: web
               run: npm run lint
