@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "eslint .",
     "test": "node --test",
-    "test:unit": "node --test test/unit",
-    "test:integration": "node --test test/integration",
+    "test:unit": "node --test \"test/unit/**/*.test.js\"",
+    "test:integration": "node --test \"test/integration/**/*.test.js\"",
     "start": "NODE_ENV=production node server.js",
     "dev": "NODE_ENV=development nodemon server.js"
   },
