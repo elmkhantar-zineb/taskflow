@@ -1,6 +1,6 @@
 services:
   taskflow-web:
-    image: taskflow-web:1.0.0
+    image: taskflow-web:${WEB_VERSION:? WEB_VERSION is required}
     build:
       context: ./web
       dockerfile: Dockerfile
@@ -10,19 +10,20 @@ services:
       taskflow-api:
         condition: service_healthy
     restart: unless-stopped
+    mem_limit: 125M
 
   taskflow-api:
-    image: taskflow-api:1.0.0
+    image: taskflow-api:${API_VERSION:? API_VERSION is required}
     build:
       context: ./api
       dockerfile: Dockerfile
-    ports:
-      - 3000:3000
+      # That publishes the API on all host interfaces, not only the Compose network.
+    # ports:
+    #   - 3000:3000
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://taskflow-mongodb:27017/TaskFlow
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     healthcheck:
       test:
         - CMD
@@ -33,8 +34,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-
-    stop_grace_period: 15s
+    mem_limit: 512M
+    cpus: 1.0
+    stop_grace_period: 30s
     depends_on:
       taskflow-mongodb:
         condition: service_healthy
@@ -48,13 +50,14 @@ services:
       test:
         - CMD
         - mongosh
-        - --eval
         - --quiet
-        - "db.adminCommand('ping').ok ? quit(0) : quit(1)"
+        - --eval
+        - "quit(db.adminCommand('ping').ok ? 0 : 1)"
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 20s
+    mem_limit: 1024M
     restart: unless-stopped
 
 volumes:

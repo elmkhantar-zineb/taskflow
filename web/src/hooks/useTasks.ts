@@ -7,7 +7,7 @@ import {
   updateTask,
 } from "../api.ts";
 import { withMotion } from "../lib/motion.ts";
-import type { Task, TaskDraft } from "../types.ts";
+import type { Priority, Task, TaskDraft } from "../types.ts";
 
 function messageFrom(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
@@ -120,6 +120,40 @@ export function useTasks() {
     }
   }, []);
 
+  const setTaskPriority = useCallback(async (task: Task, priority: Priority) => {
+    setTasks((prev) => prev.map((item) => (item._id === task._id ? { ...item, priority } : item)));
+    try {
+      const updated = await updateTask(task._id, { priority });
+      setTasks((prev) => prev.map((item) => (item._id === task._id ? updated : item)));
+      setApiOnline(true);
+      return updated;
+    } catch (err) {
+      setTasks((prev) =>
+        prev.map((item) => (item._id === task._id ? { ...item, priority: task.priority } : item)),
+      );
+      throw err;
+    }
+  }, []);
+
+  const setTaskDone = useCallback(async (task: Task, done: boolean) => {
+    withMotion(() => {
+      setTasks((prev) => prev.map((item) => (item._id === task._id ? { ...item, done } : item)));
+    }, "list");
+    try {
+      const updated = await updateTask(task._id, { done });
+      setTasks((prev) => prev.map((item) => (item._id === task._id ? updated : item)));
+      setApiOnline(true);
+      return updated;
+    } catch (err) {
+      withMotion(() => {
+        setTasks((prev) =>
+          prev.map((item) => (item._id === task._id ? { ...item, done: task.done } : item)),
+        );
+      }, "list");
+      throw err;
+    }
+  }, []);
+
   const restoreTask = useCallback(async (task: Task) => {
     const created = await createTask({
       title: task.title,
@@ -140,6 +174,8 @@ export function useTasks() {
     reload,
     addTask,
     editTask,
+    setTaskDone,
+    setTaskPriority,
     removeTask,
     restoreTask,
   };

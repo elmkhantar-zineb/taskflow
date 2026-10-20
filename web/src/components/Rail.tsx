@@ -3,7 +3,9 @@ import { Icon } from "./Icon.tsx";
 import type { ThemeMode } from "../types.ts";
 
 type RailProps = {
-  count: number;
+  openCount: number;
+  doneCount: number;
+  highCount: number;
   addedToday: number;
   loading: boolean;
   query: string;
@@ -15,7 +17,9 @@ type RailProps = {
 };
 
 export function Rail({
-  count,
+  openCount,
+  doneCount,
+  highCount,
   addedToday,
   loading,
   query,
@@ -79,7 +83,9 @@ export function Rail({
 
       <div className="top-actions">
         <p className="count-pill">
-          {loading ? "Loading…" : count === 1 ? "1 task" : `${count} tasks`}
+          {loading ? "Loading…" : `${openCount} open`}
+          {!loading && highCount > 0 ? <span className="pill-high">{` · ${highCount} high`}</span> : null}
+          {!loading && doneCount > 0 ? <span>{` · ${doneCount} done`}</span> : null}
           {!loading && addedToday > 0 ? (
             <span>{addedToday === 1 ? " · 1 today" : ` · ${addedToday} today`}</span>
           ) : null}

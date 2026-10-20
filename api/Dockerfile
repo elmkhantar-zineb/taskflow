@@ -6,7 +6,9 @@ COPY package*.json ./
 
 RUN npm ci
 
-COPY . .
+COPY --chown=node:node . .
+
+USER node
 
 HEALTHCHECK --interval=15s \
             --timeout=5s \

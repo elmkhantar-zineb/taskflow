@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+build
+coverage
+
+# Git
+.git
+.github
+
+# Environment variables and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+.vscode
+.idea
+
+# Docker Compose files
+compose*.yaml
+docker-compose*.yml

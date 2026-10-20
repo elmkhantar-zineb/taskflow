@@ -36,4 +36,14 @@ const tasksRoutes = require("./routes/tasks.routes");
 app.use("/health", healthRoutes);
 app.use("/api/tasks", tasksRoutes);
 
+app.get("/test/slow", async (req, res) => {
+  await new Promise((resolve) => setTimeout(resolve, 8000));
+
+  res.json({
+    status: "completed",
+    message: "Slow request finished",
+  });
+});
+
+
 module.exports = app;

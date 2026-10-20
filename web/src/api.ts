@@ -1,4 +1,6 @@
-import type { Task, TaskDraft } from "./types.ts";
+import type { Priority, Task, TaskDraft, TaskPatch } from "./types.ts";
+
+const PRIORITIES: readonly Priority[] = ["low", "normal", "high"];
 
 const UNREACHABLE =
   "Can't reach the API. In the api folder, run npm run dev so it listens on port 3000.";
@@ -9,8 +11,15 @@ function isTask(value: unknown): value is Task {
   return (
     typeof task._id === "string" &&
     typeof task.title === "string" &&
-    typeof task.description === "string"
+    typeof task.description === "string" &&
+    (task.done === undefined || typeof task.done === "boolean") &&
+    (task.priority === undefined || typeof task.priority === "string")
   );
+}
+
+function normalizeTask(task: Task): Task {
+  const priority = PRIORITIES.includes(task.priority) ? task.priority : "normal";
+  return { ...task, done: task.done === true, priority };
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -57,7 +66,7 @@ export async function fetchTasks(): Promise<Task[]> {
   if (!Array.isArray(data) || !data.every(isTask)) {
     throw new Error("The API returned an unexpected task list.");
   }
-  return data;
+  return data.map(normalizeTask);
 }
 
 export async function createTask(draft: TaskDraft): Promise<Task> {
@@ -66,16 +75,16 @@ export async function createTask(draft: TaskDraft): Promise<Task> {
     body: JSON.stringify(draft),
   });
   if (!isTask(data)) throw new Error("The API returned an unexpected task.");
-  return data;
+  return normalizeTask(data);
 }
 
-export async function updateTask(id: string, draft: TaskDraft): Promise<Task> {
+export async function updateTask(id: string, patch: TaskPatch): Promise<Task> {
   const data = await request<unknown>(`/api/tasks/${encodeURIComponent(id)}`, {
     method: "PUT",
-    body: JSON.stringify(draft),
+    body: JSON.stringify(patch),
   });
   if (!isTask(data)) throw new Error("That task could not be updated.");
-  return data;
+  return normalizeTask(data);
 }
 
 export async function deleteTask(id: string): Promise<void> {

@@ -9,7 +9,7 @@ import { useTasks } from "./hooks/useTasks.ts";
 import { useTheme } from "./hooks/useTheme.ts";
 import { addedToday, createdFromId, greeting, truncate } from "./lib/format.ts";
 import { withMotion } from "./lib/motion.ts";
-import type { PanelMode, SortKey, Task, TaskDraft } from "./types.ts";
+import type { PanelMode, SortKey, Task, TaskDraft, TaskScope } from "./types.ts";
 
 const sorts: { id: SortKey; label: string }[] = [
   { id: "newest", label: "Newest" },
@@ -17,7 +17,23 @@ const sorts: { id: SortKey; label: string }[] = [
   { id: "alpha", label: "A–Z" },
 ];
 
-function SortSwitch({ sort, onChange }: { sort: SortKey; onChange: (next: SortKey) => void }) {
+const scopes: { id: TaskScope; label: string }[] = [
+  { id: "open", label: "Open" },
+  { id: "done", label: "Done" },
+  { id: "all", label: "All" },
+];
+
+function Segmented<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly { id: T; label: string }[];
+  onChange: (next: T) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [thumb, setThumb] = useState<{ x: number; width: number } | null>(null);
 
@@ -33,24 +49,24 @@ function SortSwitch({ sort, onChange }: { sort: SortKey; onChange: (next: SortKe
     const observer = new ResizeObserver(measure);
     observer.observe(root);
     return () => observer.disconnect();
-  }, [sort]);
+  }, [value]);
 
   return (
     <div
       ref={ref}
       className={thumb ? "segmented is-ready" : "segmented"}
       role="radiogroup"
-      aria-label="Sort tasks"
+      aria-label={label}
     >
       {thumb ? (
         <span className="segment-thumb" style={{ width: thumb.width, transform: `translateX(${thumb.x}px)` }} />
       ) : null}
-      {sorts.map((option) => (
+      {options.map((option) => (
         <button
           key={option.id}
           type="button"
           role="radio"
-          aria-checked={sort === option.id}
+          aria-checked={value === option.id}
           onClick={() => onChange(option.id)}
         >
           {option.label}
@@ -70,11 +86,14 @@ function App() {
     reload,
     addTask,
     editTask,
+    setTaskDone,
+    setTaskPriority,
     removeTask,
     restoreTask,
   } = useTasks();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
+  const [scope, setScope] = useState<TaskScope>("open");
   const [composerForced, setComposerForced] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<PanelMode>("read");
@@ -125,13 +144,19 @@ function App() {
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
+    const scoped = tasks.filter((task) => {
+      if (scope === "open") return !task.done;
+      if (scope === "done") return task.done;
+      return true;
+    });
     const filtered = needle
-      ? tasks.filter(
+      ? scoped.filter(
           (task) =>
             task.title.toLowerCase().includes(needle) ||
-            task.description.toLowerCase().includes(needle),
+            task.description.toLowerCase().includes(needle) ||
+            task.priority.includes(needle),
         )
-      : tasks;
+      : scoped;
 
     return [...filtered].sort((a, b) => {
       if (sort === "alpha") {
@@ -141,14 +166,23 @@ function App() {
       const bTime = createdFromId(b._id)?.getTime() ?? 0;
       return sort === "newest" ? bTime - aTime : aTime - bTime;
     });
-  }, [tasks, query, sort]);
+  }, [tasks, query, sort, scope]);
 
   const selected = tasks.find((task) => task._id === selectedId) ?? null;
   const composerOpen = (status === "ready" && tasks.length === 0) || composerForced;
   const todayCount = addedToday(tasks.map((task) => task._id));
+  const openCount = tasks.filter((task) => !task.done).length;
+  const doneCount = tasks.length - openCount;
+  const highCount = tasks.filter((task) => !task.done && task.priority === "high").length;
+  const scopedCount =
+    scope === "open" ? openCount : scope === "done" ? doneCount : tasks.length;
   const caption = query.trim()
-    ? `${visible.length} ${visible.length === 1 ? "match" : "matches"} of ${tasks.length}`
-    : `${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`;
+    ? `${visible.length} ${visible.length === 1 ? "match" : "matches"} of ${scopedCount}`
+    : scope === "open"
+      ? `${openCount} open`
+      : scope === "done"
+        ? `${doneCount} done`
+        : `${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`;
 
   function openTask(id: string, nextMode: PanelMode) {
     withMotion(() => {
@@ -173,6 +207,51 @@ function App() {
   async function handleUpdate(id: string, draft: TaskDraft) {
     await editTask(id, draft);
     pushToast({ id: `saved-${id}`, message: "Changes saved" });
+  }
+
+  async function handlePriority(task: Task, priority: Task["priority"]) {
+    if (task.priority === priority) return;
+    try {
+      await setTaskPriority(task, priority);
+    } catch (err) {
+      pushToast({
+        id: `priority-error-${Date.now()}`,
+        message: err instanceof Error ? err.message : "Couldn't update that priority.",
+      });
+    }
+  }
+
+  async function handleToggle(task: Task) {
+    const next = !task.done;
+    const toastId = `done-${task._id}`;
+    let undoing = false;
+    pushToast({
+      id: toastId,
+      message: next
+        ? `Finished “${truncate(task.title, 48)}”`
+        : `Reopened “${truncate(task.title, 48)}”`,
+      actionLabel: "Undo",
+      onAction: () => {
+        if (undoing) return;
+        undoing = true;
+        void setTaskDone(task, task.done).catch((err: unknown) => {
+          pushToast({
+            id: `done-undo-error-${Date.now()}`,
+            message: err instanceof Error ? err.message : "Couldn't undo that.",
+          });
+        });
+      },
+    });
+
+    try {
+      await setTaskDone(task, next);
+    } catch (err) {
+      dismissToast(toastId);
+      pushToast({
+        id: `done-error-${Date.now()}`,
+        message: err instanceof Error ? err.message : "Couldn't update that task.",
+      });
+    }
   }
 
   async function handleDelete(task: Task) {
@@ -216,7 +295,9 @@ function App() {
   return (
     <div className={selected ? "app inspecting" : "app"}>
       <Rail
-        count={tasks.length}
+        openCount={openCount}
+        doneCount={doneCount}
+        highCount={highCount}
         addedToday={todayCount}
         loading={status === "loading"}
         query={query}
@@ -243,8 +324,19 @@ function App() {
 
           {status === "ready" && tasks.length > 0 ? (
             <div className="toolbar">
+              <Segmented
+                label="Show tasks"
+                value={scope}
+                options={scopes}
+                onChange={(next) => withMotion(() => setScope(next), "list")}
+              />
               <p className="toolbar-count">{caption}</p>
-              <SortSwitch sort={sort} onChange={(next) => withMotion(() => setSort(next), "list")} />
+              <Segmented
+                label="Sort tasks"
+                value={sort}
+                options={sorts}
+                onChange={(next) => withMotion(() => setSort(next), "list")}
+              />
             </div>
           ) : null}
 
@@ -276,11 +368,18 @@ function App() {
               onOpen={(id) => openTask(id, "read")}
               onEdit={(id) => openTask(id, "edit")}
               onDelete={(task) => void handleDelete(task)}
+              onToggle={(task) => void handleToggle(task)}
             />
           ) : null}
 
           {status === "ready" && visible.length === 0 && (tasks.length > 0 || query.trim()) ? (
-            <EmptyState query={query} onClear={() => setQuery("")} />
+            <EmptyState
+              query={query}
+              scope={scope}
+              onClear={() => setQuery("")}
+              onShowDone={() => withMotion(() => setScope("done"), "list")}
+              onShowOpen={() => withMotion(() => setScope("open"), "list")}
+            />
           ) : null}
         </div>
       </main>
@@ -294,6 +393,8 @@ function App() {
           onClose={closeTask}
           onUpdate={handleUpdate}
           onDelete={(task) => void handleDelete(task)}
+          onToggle={(task) => void handleToggle(task)}
+          onPriority={(task, priority) => void handlePriority(task, priority)}
         />
       ) : null}
 

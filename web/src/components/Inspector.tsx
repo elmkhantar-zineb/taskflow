@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createdFromId, formatFull } from "../lib/format.ts";
-import type { PanelMode, Task, TaskDraft } from "../types.ts";
+import type { PanelMode, Priority, Task, TaskDraft } from "../types.ts";
 import { Icon } from "./Icon.tsx";
+import { PriorityPicker } from "./Priority.tsx";
 
 type InspectorProps = {
   task: Task;
@@ -10,6 +11,8 @@ type InspectorProps = {
   onClose: () => void;
   onUpdate: (id: string, draft: TaskDraft) => Promise<void>;
   onDelete: (task: Task) => void;
+  onToggle: (task: Task) => void;
+  onPriority: (task: Task, priority: Priority) => void;
 };
 
 const TITLE_LIMIT = 180;
@@ -22,6 +25,8 @@ export function Inspector({
   onClose,
   onUpdate,
   onDelete,
+  onToggle,
+  onPriority,
 }: InspectorProps) {
   const panelRef = useRef<HTMLElement>(null);
   const titleField = useId();
@@ -128,7 +133,7 @@ export function Inspector({
         aria-labelledby="inspector-title"
       >
         <div className="inspector-top">
-          <p className="kicker">Task</p>
+          <p className="kicker">{task.done ? "Finished" : "Task"}</p>
           <button
             type="button"
             className="icon-btn"
@@ -142,10 +147,11 @@ export function Inspector({
 
         <div className="inspector-body">
           {created ? <p className="meta">Added {formatFull(created)}</p> : null}
+          <PriorityPicker value={task.priority} onChange={(priority) => onPriority(task, priority)} disabled={saving} />
 
           {mode === "read" ? (
             <>
-              <h2 className="inspector-title" id="inspector-title">
+              <h2 className={task.done ? "inspector-title is-done" : "inspector-title"} id="inspector-title">
                 {task.title}
               </h2>
               <p className="prose">{task.description}</p>
@@ -220,15 +226,19 @@ export function Inspector({
               <button type="button" className="btn btn-ghost" onClick={cancel} disabled={saving}>
                 Cancel
               </button>
-            ) : null}
+            ) : (
+              <button type="button" className="btn btn-ghost" onClick={() => onMode("edit")}>
+                <Icon name="pencil" />
+                Edit
+              </button>
+            )}
             {mode === "edit" ? (
               <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={saving || !dirty}>
                 {saving ? "Saving…" : "Save"}
               </button>
             ) : (
-              <button type="button" className="btn btn-primary" onClick={() => onMode("edit")}>
-                <Icon name="pencil" />
-                Edit
+              <button type="button" className="btn btn-primary" onClick={() => onToggle(task)}>
+                {task.done ? "Reopen" : "Mark done"}
               </button>
             )}
           </div>

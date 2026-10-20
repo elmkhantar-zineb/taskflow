@@ -362,6 +362,7 @@ kbd,
   gap: 12px;
   margin-bottom: 12px;
   animation: rise 0.55s var(--ease) 0.06s backwards;
+  flex-wrap: wrap;
 }
 
 .toolbar-count {
@@ -694,7 +695,7 @@ kbd,
 .card {
   position: relative;
   display: grid;
-  grid-template-columns: 5px minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: start;
   padding: 14px 12px 14px 14px;
@@ -722,19 +723,58 @@ kbd,
   transform: translateY(-1px) scale(0.992);
 }
 
-.card::before {
-  content: "";
-  align-self: stretch;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sky) 55%, transparent);
-  transform-origin: center;
+.check {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: transparent;
+  color: transparent;
   transition:
-    background 0.35s var(--ease),
-    transform 0.4s var(--ease);
+    background 0.3s var(--ease),
+    border-color 0.3s var(--ease),
+    color 0.2s var(--ease),
+    transform 0.35s var(--ease);
 }
 
-.card:hover::before {
-  transform: scaleY(1.15);
+.check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+.check.is-done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.check:active {
+  transform: scale(0.92);
+}
+
+.check-mark {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 0.35s var(--ease);
+}
+
+.check:hover .check-mark,
+.check.is-done .check-mark {
+  stroke-dashoffset: 0;
 }
 
 .card.is-selected {
@@ -742,8 +782,25 @@ kbd,
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
-.card.is-selected::before {
-  background: var(--accent);
+.card.is-done .card-title {
+  color: var(--faint);
+}
+
+.card.is-done .card-title button {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--faint);
+}
+
+.card.is-done .card-body {
+  opacity: 0.7;
+}
+
+.inspector-title.is-done {
+  color: var(--faint);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--faint);
 }
 
 .card:has(.card-title button:focus-visible) {
@@ -754,6 +811,7 @@ kbd,
 .card-title {
   font-size: 18px;
   overflow-wrap: anywhere;
+  transition: color 0.35s var(--ease);
 }
 
 .card-title button {
@@ -788,12 +846,100 @@ kbd,
   overflow-wrap: anywhere;
 }
 
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .card-meta {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 0;
   color: var(--faint);
   font-size: 12px;
   font-weight: 650;
+}
+
+.priority-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.priority-badge,
+.priority-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.priority-badge {
+  height: 24px;
+  padding: 0 8px 0 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: var(--priority-soft);
+  color: var(--priority);
+}
+
+.priority-low {
+  --priority: #64748b;
+  --priority-soft: rgba(100, 116, 139, 0.16);
+}
+
+.priority-normal {
+  --priority: var(--accent);
+  --priority-soft: var(--accent-soft);
+}
+
+.priority-high {
+  --priority: var(--danger);
+  --priority-soft: var(--danger-soft);
+}
+
+.priority-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.priority-option {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+  transition:
+    background 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    color 0.25s var(--ease),
+    transform 0.3s var(--ease);
+}
+
+.priority-option .priority-dot {
+  color: var(--priority);
+}
+
+.priority-option[aria-checked="true"] {
+  background: var(--priority-soft);
+  border-color: transparent;
+  color: var(--priority);
+}
+
+.priority-option:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.pill-high {
+  color: var(--danger);
 }
 
 .card-actions {

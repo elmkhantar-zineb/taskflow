@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
-import type { TaskDraft } from "../types.ts";
+import type { Priority, TaskDraft } from "../types.ts";
 import { Icon } from "./Icon.tsx";
+import { PriorityPicker } from "./Priority.tsx";
 
 type ComposerProps = {
   open: boolean;
@@ -34,6 +35,7 @@ export function Composer({
   const startedOpen = useRef(open);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<Priority>("normal");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const shortcut = modifierLabel();
@@ -69,9 +71,10 @@ export function Composer({
     setSaving(true);
     setError(null);
     try {
-      await onCreate({ title: nextTitle, description: nextDescription });
+      await onCreate({ title: nextTitle, description: nextDescription, priority });
       setTitle("");
       setDescription("");
+      setPriority("normal");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the task.");
     } finally {
@@ -158,6 +161,8 @@ export function Composer({
           }}
         />
       </div>
+
+      <PriorityPicker value={priority} onChange={setPriority} disabled={saving} />
 
       {error ? (
         <p className="field-error" id={errorId} role="alert">
