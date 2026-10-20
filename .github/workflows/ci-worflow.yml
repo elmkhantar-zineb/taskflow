@@ -29,7 +29,6 @@ jobs:
         run: npm run lint
 
   frontend-unit-tests:
-    needs: [frontend-lint]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -49,7 +48,6 @@ jobs:
         run: npm run test:unit
 
   frontend-integration-tests:
-    needs: [frontend-unit-tests]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,7 +69,6 @@ jobs:
 
 
   frontend-build:
-    needs: [frontend-integration-tests]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -112,7 +109,6 @@ jobs:
         run: npm run lint
 
   backend-unit-tests:
-    needs: [backend-lint]
     runs-on: ubuntu-latest
     defaults:
         run:
@@ -132,7 +128,6 @@ jobs:
           run: npm run test:unit
 
   backend-integration-tests:
-    needs: [backend-unit-tests]
     runs-on: ubuntu-latest
     defaults:
         run:
