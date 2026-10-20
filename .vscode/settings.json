@@ -1,6 +1,20 @@
 {
-    "cSpell.words": [
-        "healthcheck",
-        "taskflow"
-    ]
+  "cSpell.words": ["healthcheck", "taskflow"],
+  "editor.detectIndentation": false,
+  "editor.guides.indentation": true,
+  "editor.guides.highlightActiveIndentation": true,
+  "editor.renderWhitespace": "boundary",
+  "editor.renderControlCharacters": true,
+
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "full",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+
+  "yaml.format.enable": true,
+  "yaml.validate": true
 }

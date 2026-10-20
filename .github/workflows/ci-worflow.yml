@@ -48,14 +48,14 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
-
-  frontend-build:
+  frontend-integration-tests:
+    needs: [frontend-unit-tests]
     runs-on: ubuntu-latest
     defaults:
-        run:
-            working-directory: web
+      run:
+        working-directory: web
     steps:
-        - name: Checkout code
+        - name: Checkout Code
           uses: actions/checkout@v4
         - name: Setup Node.js
           uses: actions/setup-node@v4
@@ -63,7 +63,90 @@ jobs:
             node-version: 24
             cache: npm
             cache-dependency-path: web/package-lock.json
+        - name: Install Dependencies
+          run: npm ci
+        - name: Run Integration Tests
+          run: npm run test:integration
+
+
+
+  frontend-build:
+    needs: [frontend-integration-tests]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run build
+        run: npm run build
+
+
+
+  backend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run lint
+        run: npm run lint
+
+  backend-unit-tests:
+    needs: [backend-lint]
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: api
+    steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 24
+            cache: npm
+            cache-dependency-path: api/package-lock.json
         - name: Install dependencies
           run: npm ci
-        - name: Run build
-          run: npm run build
+        - name: Run unit tests
+          run: npm run test:unit
+
+  backend-integration-tests:
+    needs: [backend-unit-tests]
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: api
+    steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 24
+            cache: npm
+            cache-dependency-path: api/package-lock.json
+        - name: Install dependencies
+          run: npm ci
+        - name: Run integration tests
+          run: npm run test:integration
