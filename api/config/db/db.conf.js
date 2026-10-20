@@ -34,6 +34,7 @@ const connectDb = async () => {
       if (attempt === maxRetries) {
         throw new Error(
           "Failed to connect to MongoDB after " + maxRetries + " attempts",
+          { cause: error },
         );
       }
     }

@@ -1,6 +1,5 @@
 const Task = require("../models/task.model");
-
-const PRIORITIES = ["low", "normal", "high"];
+const { normalizePriority, buildTaskUpdate } = require("../lib/taskPayload");
 
 const getAllTasks = async (req, res) => {
   try {
@@ -16,7 +15,7 @@ const createTask = async (req, res) => {
     const task = new Task({
       title: req.body.title,
       description: req.body.description,
-      priority: PRIORITIES.includes(req.body.priority) ? req.body.priority : "normal",
+      priority: normalizePriority(req.body.priority),
     });
     await task.save();
     res.status(201).json(task);
@@ -36,11 +35,7 @@ const getTaskById = async (req, res) => {
 
 const updateTaskById = async (req, res) => {
   try {
-    const update = {};
-    if (typeof req.body.title === "string") update.title = req.body.title;
-    if (typeof req.body.description === "string") update.description = req.body.description;
-    if (typeof req.body.done === "boolean") update.done = req.body.done;
-    if (PRIORITIES.includes(req.body.priority)) update.priority = req.body.priority;
+    const update = buildTaskUpdate(req.body);
     if (Object.keys(update).length === 0) {
       return res.status(400).json({ message: "Nothing to update." });
     }
