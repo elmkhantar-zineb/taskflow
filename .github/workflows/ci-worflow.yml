@@ -154,6 +154,8 @@ jobs:
         run:
             working-directory: api
     steps:
+        - name: checkout code
+          uses: actions/checkout@v4
         - name: build docker image
           run: ls -la 
 
@@ -164,5 +166,7 @@ jobs:
         run:
             working-directory: web
     steps:
+        - name: checkout code
+          uses: actions/checkout@v4
         - name: build docker image
           run: ls -la 
