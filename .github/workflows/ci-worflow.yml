@@ -22,6 +22,7 @@ jobs:
                 cache: npm
                 cache-dependency-path: web/package-lock.json
             - name: Install dependencies
+              working-directory: web
               run: npm ci
             - name: Run lint
               run: npm run lint
