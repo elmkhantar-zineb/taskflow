@@ -145,3 +145,25 @@ jobs:
           run: npm ci
         - name: Run integration tests
           run: npm run test:integration
+
+
+  backend-docker-build:
+    needs: [backend-lint, backend-unit-tests, backend-integration-tests]
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: api
+    steps:
+        - name: build docker image
+          run: echo "Building backend docker image"
+
+
+  frontend-docker-build:
+    needs: [frontend-lint, frontend-unit-tests, frontend-integration-tests]
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: web
+    steps:
+        - name: build docker image
+          run: echo "Building frontend docker image"
