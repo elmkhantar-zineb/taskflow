@@ -86,7 +86,26 @@ jobs:
         run: npm ci
       - name: Run build
         run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@4
+        with:
+            name: web-build
+            id: web-build-${{ github.sha}}
+            path: web/dist
 
+  frontend-download-build:
+    runs-on: ubuntu-latest
+    needs: frontend-build
+    steps:
+        - name: Download build artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: web-build
+            id: web-build-${{ github.sha}}
+            path: web/dist
+
+        - name: list files
+          run: ls -la
 
 
   backend-lint:
