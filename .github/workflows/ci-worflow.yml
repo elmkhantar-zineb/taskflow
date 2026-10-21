@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+permissions:
+    contents: read
+
 jobs:
   frontend-lint:
     runs-on: ubuntu-latest
@@ -90,8 +93,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
             name: web-build
-            id: web-build-${{ github.sha}}
             path: web/dist
+            if-no-files-found: error
+            retention-days: 7
 
   frontend-download-build:
     runs-on: ubuntu-latest
@@ -101,11 +105,12 @@ jobs:
           uses: actions/download-artifact@v8
           with:
             name: web-build
-            id: web-build-${{ github.sha}}
             path: web/dist
 
         - name: list files
-          run: ls -la
+          run: |
+            ls -la web/dist
+            test -f web/dist/index.html
 
 
   backend-lint:
