@@ -1,3 +1,4 @@
+
 export function createdFromId(id: string): Date | null {
   if (!/^[a-f\d]{24}$/i.test(id)) return null;
   const seconds = Number.parseInt(id.slice(0, 8), 16);
