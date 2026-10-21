@@ -180,9 +180,16 @@ jobs:
     steps:
         - name: checkout code
           uses: actions/checkout@v4
+        - name: set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+        - name: login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
         - name: build and push docker image
           run: |
-            docker build -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
+            docker buildx build -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
             -t hamzaelmkhantar/taskflow-api:latest --platform linux/amd64,linux/arm64 --push .
 
   frontend-docker-build:
@@ -194,7 +201,14 @@ jobs:
     steps:
         - name: checkout code
           uses: actions/checkout@v4
+        - name: set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+        - name: login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
         - name: build docker image
           run: |
-            docker build -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
+            docker buildx build -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
             -t hamzaelmkhantar/taskflow-web:latest --platform linux/amd64,linux/arm64 --push .
