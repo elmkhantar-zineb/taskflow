@@ -1,4 +1,3 @@
-const intentionallyUnusedVariable = 123;
 
 export function createdFromId(id: string): Date | null {
   if (!/^[a-f\d]{24}$/i.test(id)) return null;
