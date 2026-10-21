@@ -180,8 +180,10 @@ jobs:
     steps:
         - name: checkout code
           uses: actions/checkout@v4
-        - name: build docker image
-          run: ls -la 
+        - name: build and push docker image
+          run: |
+            docker build -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
+            -t hamzaelmkhantar/taskflow-api:latest --platform linux/amd64,linux/arm64 --push .
 
   frontend-docker-build:
     needs: [frontend-lint, frontend-unit-tests, frontend-integration-tests]
@@ -193,4 +195,6 @@ jobs:
         - name: checkout code
           uses: actions/checkout@v4
         - name: build docker image
-          run: ls -la 
+          run: |
+            docker build -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
+            -t hamzaelmkhantar/taskflow-web:latest --platform linux/amd64,linux/arm64 --push .
