@@ -187,6 +187,9 @@ jobs:
           with:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Generate short SHA
+          id: git
+          run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         - name: build and push docker image
           run: |
             docker buildx build -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
@@ -208,6 +211,9 @@ jobs:
           with:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Generate short SHA
+          id: git
+          run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         - name: build docker image
           run: |
             docker buildx build -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
