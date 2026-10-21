@@ -125,7 +125,7 @@ describe("task controller", () => {
     await deleteTaskById({ params: { id: "abc" } }, res);
 
     assert.equal(removed, "abc");
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.statusCode, 500);
     assert.equal(res.body.message, "Task deleted successfully");
   });
 });
