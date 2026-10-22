@@ -206,6 +206,14 @@ jobs:
           -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
           -t hamzaelmkhantar/taskflow-api:latest \
            --push \
+           --label org.opencontainers.image.title="Taskflow API" \
+           --label org.opencontainers.image.description="Taskflow API" \
+           --label org.opencontainers.image.authors="Hamza El Mkhantar" \
+           --label org.opencontainers.image.documentation="https://taskflow.com" \
+           --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+           --label org.opencontainers.image.version=${{ steps.git.outputs.short_sha }} \
+           --label org.opencontainers.image.revision=${{ github.sha }} \
+           --label org.opencontainers.image.vendor="Hamza El Mkhantar" \
            .
 
       - name: build and push release image
@@ -219,6 +227,14 @@ jobs:
           --platform linux/amd64,linux/arm64 \
           -t hamzaelmkhantar/taskflow-api:${VERSION} \
           --push \
+          --label org.opencontainers.image.title="Taskflow API" \
+          --label org.opencontainers.image.description="Taskflow API" \
+          --label org.opencontainers.image.authors="Hamza El Mkhantar" \
+          --label org.opencontainers.image.documentation="https://taskflow.com" \
+          --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+          --label org.opencontainers.image.version=${VERSION} \
+          --label org.opencontainers.image.revision=${{ github.sha }} \
+          --label org.opencontainers.image.vendor="Hamza El Mkhantar" \
           .
 
   frontend-docker-build:
@@ -265,8 +281,15 @@ jobs:
           -t hamzaelmkhantar/taskflow-web:latest \
           --platform linux/amd64,linux/arm64 \
           --push \
+          --label org.opencontainers.image.title="Taskflow Web" \
+          --label org.opencontainers.image.description="Taskflow Web" \
+          --label org.opencontainers.image.authors="Hamza El Mkhantar" \
+          --label org.opencontainers.image.documentation="https://taskflow.com" \
+          --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+          --label org.opencontainers.image.version=${{ steps.git.outputs.short_sha }} \
+          --label org.opencontainers.image.revision=${{ github.sha }} \
+          --label org.opencontainers.image.vendor="Hamza El Mkhantar" \
           .
-
       - name: Build and push release image
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
@@ -278,6 +301,14 @@ jobs:
           --platform linux/amd64,linux/arm64 \
           -t hamzaelmkhantar/taskflow-web:${VERSION} \
           --push \
+          --label org.opencontainers.image.title="Taskflow Web" \
+          --label org.opencontainers.image.description="Taskflow Web" \
+          --label org.opencontainers.image.authors="Hamza El Mkhantar" \
+          --label org.opencontainers.image.documentation="https://taskflow.com" \
+          --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+          --label org.opencontainers.image.version=${VERSION} \
+          --label org.opencontainers.image.revision=${{ github.sha }} \
+          --label org.opencontainers.image.vendor="Hamza El Mkhantar" \
           .
 
   smoke-tests:
