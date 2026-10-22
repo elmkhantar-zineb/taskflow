@@ -183,7 +183,7 @@ jobs:
       - name: set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: login to Docker Hub
-        if: github.event_name == 'push' && ( github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') )
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -191,25 +191,35 @@ jobs:
       - name: Generate short SHA
         id: git
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: build docker image on PRs
+      - name: Validate backend docker image on PRs
         if: github.event_name == 'pull_request'
         run: |
-          docker buildx build -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
-          -t hamzaelmkhantar/taskflow-api:latest --platform linux/amd64,linux/arm64 .
-      - name: build and push docker image
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        env:
-            RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          VERSION=${RELEASE_TAG#v}
-
           docker buildx build \
+          -t hamzaelmkhantar/taskflow-api:ci \
+          --platform linux/amd64,linux/arm64 \
+          .
+      - name: build and push main image
+        if: github.event_name == 'push' &&  github.ref == 'refs/heads/main'
+        run: |
+          docker buildx build \
+          --platform linux/amd64,linux/arm64 \
           -t hamzaelmkhantar/taskflow-api:${{ steps.git.outputs.short_sha }} \
           -t hamzaelmkhantar/taskflow-api:latest \
-          -t hamzaelmkhantar/taskflow-api:${VERSION} \
-          --platform linux/amd64,linux/arm64 \
            --push \
            .
+
+      - name: build and push release image
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+            VERSION=${RELEASE_TAG#v}
+
+            docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t hamzaelmkhantar/taskflow-api:${VERSION} \
+            --push \
+            .
 
   frontend-docker-build:
     needs:
@@ -231,7 +241,7 @@ jobs:
       - name: set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: login to Docker Hub
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -239,22 +249,33 @@ jobs:
       - name: Generate short SHA
         id: git
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: build docker image
-        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v')
+      - name: Validate frontend docker image on PRs
+        if: github.event_name == 'pull_request'
         run: |
-          docker buildx build -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
-          -t hamzaelmkhantar/taskflow-web:latest --platform linux/amd64,linux/arm64 .
-      - name: build and push docker image
+          docker buildx build \
+          -t hamzaelmkhantar/taskflow-web:ci \
+          --platform linux/amd64,linux/arm64 \
+          .
+      - name: build and push main image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+
+          docker buildx build \
+          -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
+          -t hamzaelmkhantar/taskflow-web:latest \
+          --platform linux/amd64,linux/arm64 \
+          --push \
+          .
+
+      - name: Build and push release image
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
             RELEASE_TAG: ${{ github.ref_name }}
         run: |
           VERSION=${RELEASE_TAG#v}
 
           docker buildx build \
-          -t hamzaelmkhantar/taskflow-web:${{ steps.git.outputs.short_sha }} \
-          -t hamzaelmkhantar/taskflow-web:latest \
-          -t hamzaelmkhantar/taskflow-web:${VERSION} \
           --platform linux/amd64,linux/arm64 \
+          -t hamzaelmkhantar/taskflow-web:${VERSION} \
           --push \
           .
