@@ -318,3 +318,15 @@ jobs:
           docker pull hamzaelmkhantar/taskflow-web:${RELEASE_TAG#v}
           docker pull hamzaelmkhantar/taskflow-api:${RELEASE_TAG#v}
           docker compose up -d --no-build --wait
+
+          curl --fail --silent --show-error http://localhost:8080/
+          curl --fail --silent --show-error http://localhost:8080/api/tasks
+
+          if: failure()
+          run: |
+            docker compose ps
+            docker compose logs --no-color --tail 100
+
+          if: always()
+          run: |
+            docker compose down -v --remove-orphans
