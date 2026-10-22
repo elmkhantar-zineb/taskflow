@@ -11,6 +11,7 @@ type InspectorProps = {
   onClose: () => void;
   onUpdate: (id: string, draft: TaskDraft) => Promise<void>;
   onDelete: (task: Task) => void;
+  onCopy: (task: Task) => void;
   onToggle: (task: Task) => void;
   onPriority: (task: Task, priority: Priority) => void;
 };
@@ -25,6 +26,7 @@ export function Inspector({
   onClose,
   onUpdate,
   onDelete,
+  onCopy,
   onToggle,
   onPriority,
 }: InspectorProps) {
@@ -217,9 +219,15 @@ export function Inspector({
         </div>
 
         <div className="inspector-foot">
-          <button type="button" className="btn btn-ghost danger" onClick={() => onDelete(task)}>
-            Delete
-          </button>
+          <div className="foot-right">
+            <button type="button" className="btn btn-ghost" onClick={() => onCopy(task)}>
+              <Icon name="copy" />
+              Copy
+            </button>
+            <button type="button" className="btn btn-ghost danger" onClick={() => onDelete(task)}>
+              Delete
+            </button>
+          </div>
           <div className="foot-right">
             {mode === "edit" && dirty ? <span className="dirty">Unsaved</span> : null}
             {mode === "edit" ? (

@@ -254,6 +254,25 @@ function App() {
     }
   }
 
+  async function handleCopy(task: Task) {
+    try {
+      await addTask({
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+      });
+      pushToast({
+        id: `copied-${task._id}-${Date.now()}`,
+        message: `Copied “${truncate(task.title, 48)}”`,
+      });
+    } catch (err) {
+      pushToast({
+        id: `copy-error-${Date.now()}`,
+        message: err instanceof Error ? err.message : "Couldn't copy that task.",
+      });
+    }
+  }
+
   async function handleDelete(task: Task) {
     if (selectedId === task._id) setSelectedId(null);
     const toastId = `delete-${task._id}`;
@@ -367,6 +386,7 @@ function App() {
               selectedId={selected?._id ?? null}
               onOpen={(id) => openTask(id, "read")}
               onEdit={(id) => openTask(id, "edit")}
+              onCopy={(task) => void handleCopy(task)}
               onDelete={(task) => void handleDelete(task)}
               onToggle={(task) => void handleToggle(task)}
             />
@@ -393,6 +413,7 @@ function App() {
           onClose={closeTask}
           onUpdate={handleUpdate}
           onDelete={(task) => void handleDelete(task)}
+          onCopy={(task) => void handleCopy(task)}
           onToggle={(task) => void handleToggle(task)}
           onPriority={(task, priority) => void handlePriority(task, priority)}
         />

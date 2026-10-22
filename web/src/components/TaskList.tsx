@@ -11,6 +11,7 @@ type TaskListProps = {
   selectedId: string | null;
   onOpen: (id: string) => void;
   onEdit: (id: string) => void;
+  onCopy: (task: Task) => void;
   onDelete: (task: Task) => void;
   onToggle: (task: Task) => void;
 };
@@ -21,6 +22,7 @@ export function TaskList({
   selectedId,
   onOpen,
   onEdit,
+  onCopy,
   onDelete,
   onToggle,
 }: TaskListProps) {
@@ -72,6 +74,14 @@ export function TaskList({
                   onClick={() => onEdit(task._id)}
                 >
                   <Icon name="pencil" />
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label={`Copy ${task.title}`}
+                  onClick={() => onCopy(task)}
+                >
+                  <Icon name="copy" />
                 </button>
                 <button
                   type="button"

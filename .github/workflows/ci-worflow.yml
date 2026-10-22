@@ -350,13 +350,23 @@ jobs:
                 --connect-timeout 3 \
                 --max-time 10 \
                 --fail --silent --show-error http://localhost:8080/
-                
+
           curl --retry 10 \
                 --retry-delay 2 \
                 --retry-all-errors \
                 --connect-timeout 3 \
                 --max-time 10 \
                 --fail --silent --show-error http://localhost:8080/api/tasks
+        
+      - name: Verify API readiness
+        run: |
+            docker compose exec -T taskflow-api node -e "
+            fetch('http://127.0.0.1:3000/health/ready')
+                .then(response => {
+                if (!response.ok) process.exit(1)
+                })
+                .catch(() => process.exit(1))
+            "
 
       - name: show docker logs on failure
         if: failure()

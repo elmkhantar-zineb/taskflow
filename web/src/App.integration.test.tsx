@@ -32,6 +32,22 @@ function installFetch() {
       const url = String(input);
       const method = init?.method ?? "GET";
       if (url.includes("/health/live")) return new Response("{}", { status: 200 });
+      if (url.includes("/api/tasks") && method === "POST") {
+        const draft = JSON.parse(String(init?.body)) as {
+          title: string;
+          description: string;
+          priority?: string;
+        };
+        const created = {
+          _id: `${seconds}00000000000000ff`,
+          title: draft.title,
+          description: draft.description,
+          done: false,
+          priority: draft.priority ?? "normal",
+        };
+        state.unshift(created);
+        return new Response(JSON.stringify(created), { status: 201 });
+      }
       if (url.includes("/api/tasks") && method === "PUT") {
         const id = decodeURIComponent(url.split("/").pop() ?? "");
         const patch = JSON.parse(String(init?.body)) as { done?: boolean };
@@ -79,5 +95,17 @@ describe("task board", () => {
     await user.clear(screen.getByRole("textbox", { name: "Search tasks" }));
     await user.type(screen.getByRole("textbox", { name: "Search tasks" }), "zzzz");
     expect(screen.getByRole("heading", { name: "No tasks match" })).toBeInTheDocument();
+  });
+
+  it("copies a task onto the open list", async () => {
+    installFetch();
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Copy Write tests" }));
+
+    expect(await screen.findByText("Copied “Write tests”")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: /Write tests/ })).toHaveLength(2);
+    expect(screen.getAllByText("High")).toHaveLength(2);
   });
 });
