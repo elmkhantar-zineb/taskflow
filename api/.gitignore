@@ -28,3 +28,6 @@ npm-debug.log*
 # Docker Compose files
 compose*.yaml
 docker-compose*.yml
+
+
+*-oci.tar
