@@ -1,19 +1,19 @@
 services:
-  taskflow-web:
-    image: taskflow-web:${WEB_VERSION:? WEB_VERSION is required}
+  web:
+    image: hamzaelmkhantar/taskflow-web:${WEB_VERSION:? WEB_VERSION is required}
     build:
       context: ./web
       dockerfile: Dockerfile
     ports:
       - 8080:80
     depends_on:
-      taskflow-api:
+      api:
         condition: service_healthy
     restart: unless-stopped
     mem_limit: 125M
 
-  taskflow-api:
-    image: taskflow-api:${API_VERSION:? API_VERSION is required}
+  api:
+    image: hamzaelmkhantar/taskflow-api:${API_VERSION:? API_VERSION is required}
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -38,14 +38,14 @@ services:
     cpus: 1.0
     stop_grace_period: 30s
     depends_on:
-      taskflow-mongodb:
+      mongodb:
         condition: service_healthy
     restart: unless-stopped
 
-  taskflow-mongodb:
+  mongodb:
     image: mongo:9
     volumes:
-      - taskflow-mongodb-data:/data/db
+      - mongodb-data:/data/db
     healthcheck:
       test:
         - CMD
@@ -61,4 +61,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  taskflow-mongodb-data:
+  mongodb-data:
